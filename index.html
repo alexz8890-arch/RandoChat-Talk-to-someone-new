@@ -3,133 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Chat - دردشة عشوائية</title>
-    <!-- مكتبة Supabase -->
+    <title>راندو تشات | Random Chat Badoo Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Tahoma, sans-serif; background: #0f172a; color: #fff; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 500px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        h2 { text-align: center; color: #38bdf8; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; }
-        input, button { width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 16px; box-sizing: border-box; }
-        input { background: #334155; color: #fff; margin-bottom: 10px; }
-        button { background: #0ea5e9; color: #fff; font-weight: bold; cursor: pointer; }
-        button:hover { background: #0284c7; }
-        #chat-box { height: 300px; background: #0f172a; border-radius: 6px; padding: 10px; overflow-y: scroll; margin-bottom: 15px; border: 1px solid #334155; }
-        .message { margin-bottom: 8px; padding: 6px 10px; background: #334155; border-radius: 4px; font-size: 14px; }
-        .message span { font-weight: bold; color: #38bdf8; margin-left: 5px; }
+        :root {
+            --bg-main: #0b0f19;
+            --card-bg: rgba(22, 30, 46, 0.85);
+            --primary: #38bdf8;
+            --badoo-pink: #7856ff;
+            --badoo-gradient: linear-gradient(135deg, #7856ff, #ff3366);
+            --vip-gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --bubble-me: #0284c7;
+            --bubble-other: #1e293b;
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background: radial-gradient(circle at top, #1e1b4b 0%, var(--bg-main) 80%); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
+
+        .app-container {
+            width: 100%; max-width: 460px; height: 94vh;
+            background: var(--card-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass); border-radius: 24px;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7); position: relative;
+        }
+
+        .screen { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 20px; overflow-y: auto; }
+        .hidden { display: none !important; }
+
+        .welcome-title { text-align: center; font-size: 28px; font-weight: 800; background: var(--badoo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-sub { text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
+        input, select { width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glass); border-radius: 12px; color: #fff; font-size: 14px; outline: none; }
+
+        .avatar-picker { display: flex; gap: 10px; align-items: center; justify-content: center; margin-bottom: 15px; }
+        .avatar-preview { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--badoo-pink); object-fit: cover; }
+
+        .btn-primary { width: 100%; padding: 14px; background: var(--badoo-gradient); border: none; border-radius: 12px; color: #fff; font-weight: 700; cursor: pointer; }
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-glass); margin-bottom: 15px; }
+        .user-badge { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+        .user-avatar-small { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
+        .badge-verified { color: #38bdf8; font-size: 14px; }
+
+        .room-card { background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-glass); padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; }
+
+        .messages-box { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 12px; }
+        .msg-bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 14px; position: relative; }
+        .msg-me { align-self: flex-start; background: var(--bubble-me); color: #fff; border-bottom-right-radius: 4px; }
+        .msg-other { align-self: flex-end; background: var(--bubble-other); color: #fff; border-bottom-left-radius: 4px; border: 1px solid var(--border-glass); }
+
+        .msg-user-info { display: flex; align-items: center; gap: 6px; cursor: pointer; margin-bottom: 4px; }
+        .msg-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+
+        /* Modal Profile Card */
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 99; }
+        .profile-card { background: #1e293b; border: 1px solid var(--border-glass); width: 100%; max-width: 320px; border-radius: 20px; padding: 20px; text-align: center; }
+        .profile-card img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--badoo-pink); margin-bottom: 10px; object-fit: cover; }
+        .btn-kick { background: #ef4444; color: #fff; border: none; padding: 10px 16px; border-radius: 10px; margin-top: 10px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-close-modal { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 8px; border-radius: 8px; margin-top: 8px; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>راندو تشات</h2>
-    
-    <div id="setup-screen">
-        <div class="input-group">
+<div class="app-container">
+
+    <!-- 1. شاشة الملف الشخصي Badoo Style -->
+    <div id="screen-welcome" class="screen">
+        <div class="welcome-title">راندو تشات VIP ⚡</div>
+        <div class="welcome-sub">أنشئ ملفك الشخصي وابدأ التواصل</div>
+
+        <div class="avatar-picker">
+            <img id="preview-avatar" class="avatar-preview" src="https://api.dicebear.com/7.x/bottts/svg?seed=Ali">
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted);">رابط صورتك أو اختار رمز:</label>
+                <input type="text" id="input-avatar-url" placeholder="رابط صورة..." onchange="updateAvatarPreview(this.value)">
+            </div>
+        </div>
+
+        <div class="form-group">
             <label>اسم المستخدم:</label>
-            <input type="text" id="username" placeholder="اكتب اسمك هنا...">
+            <input type="text" id="input-username" value="علي">
         </div>
-        <div class="input-group">
-            <label>رقم الغرفة:</label>
-            <input type="number" id="room-id" value="1" placeholder="رقم الغرفة">
+
+        <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex:1;">
+                <label>العمر:</label>
+                <input type="number" id="input-age" value="22">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>الجنس:</label>
+                <select id="input-gender">
+                    <option value="ذكر">ذكر ♂</option>
+                    <option value="أنثى">أنثى ♀</option>
+                    <option value="غير محدد">غير محدد ⚧</option>
+                </select>
+            </div>
         </div>
-        <button onclick="startChat()">دخول للدردشة</button>
+
+        <button class="btn-primary" onclick="saveProfileAndGo()">دخول المنصة 🚀</button>
     </div>
 
-    <div id="chat-screen" style="display: none;">
-        <div id="chat-box"></div>
-        <div class="input-group">
-            <input type="text" id="message-input" placeholder="اكتب رسالتك...">
+    <!-- 2. شاشة الغرف -->
+    <div id="screen-lobby" class="screen hidden">
+        <div class="header-bar">
+            <div class="user-badge">
+                <img id="bar-avatar" class="user-avatar-small" src="">
+                <span id="bar-username">علي</span>
+                <span class="badge-verified">☑️</span>
+            </div>
+            <button class="btn-close-modal" style="width:auto; padding:6px 12px;" onclick="logout()">خروج</button>
         </div>
-        <button onclick="sendMessage()">إرسال</button>
+
+        <div style="margin-bottom: 12px; font-weight: 700; font-size: 14px; color: var(--text-muted);">اختر غرفة للدردشة:</div>
+
+        <div class="room-card" onclick="joinRoom(1, '🌐 الغرفة العامة')">
+            <div>
+                <h4>🌐 الغرفة العامة</h4>
+                <p style="font-size:12px; color:var(--text-muted);">تعارف ومحادثات للجميع</p>
+            </div>
+            <span style="color:#4ade80; font-size:12px;">● متصل</span>
+        </div>
+
+        <div class="room-card" onclick="joinRoom(2, '☕ روقان Badoo')">
+            <div>
+                <h4>☕ روقان Badoo</h4>
+                <p style="font-size:12px; color:var(--text-muted);">مساحة خاصة للمميزين</p>
+            </div>
+            <span style="color:#4ade80; font-size:12px;">● متصل</span>
+        </div>
     </div>
+
+    <!-- 3. شاشة الدردشة -->
+    <div id="screen-chat" class="screen hidden">
+        <div class="header-bar">
+            <h4 id="chat-room-title">الغرفة العامة</h4>
+            <button class="btn-close-modal" style="width:auto;" onclick="leaveRoom()">مغادرة 🚪</button>
+        </div>
+
+        <div id="messages-box" class="messages-box"></div>
+
+        <div style="display:flex; gap:8px; padding-top:10px;">
+            <input type="text" id="chat-input-msg" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <button class="btn-primary" style="width:60px;" onclick="sendChatMessage()">➤</button>
+        </div>
+    </div>
+
+    <!-- 4. نافذة البروفايل (Modal) -->
+    <div id="modal-profile" class="modal-overlay hidden">
+        <div class="profile-card">
+            <img id="modal-img" src="">
+            <h3 id="modal-name">علي ☑️</h3>
+            <p id="modal-details" style="font-size:13px; color:var(--text-muted); margin: 6px 0;"></p>
+            
+            <button id="btn-kick-user" class="btn-kick hidden" onclick="kickSelectedUser()">طرد من الغرفة 🚫</button>
+            <button class="btn-close-modal" onclick="closeProfileModal()">إغلاق</button>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // بيانات Supabase الصحيحة
     const SUPABASE_URL = 'https://wiahoicutalnheblndek.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpYWhvaWN1dGFsbmhlYmxuZGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxOTg1MjIsImV4cCI6MjEwNDc3NDUyMn0.unasXFy1XiJyxrliCarNJs9eC2FEJ_6UrNzWq4myvhA';
-
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUsername = '';
-    let currentRoom = 1;
+    let userProfile = { name: 'علي', age: 22, gender: 'ذكر', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ali', isVerified: true };
+    let currentRoomId = 1;
+    let selectedChatUser = null;
+    let roomChannel = null;
 
-    function startChat() {
-        const user = document.getElementById('username').value.trim();
-        const room = document.getElementById('room-id').value;
+    function updateAvatarPreview(url) {
+        if(url) document.getElementById('preview-avatar').src = url;
+    }
 
-        if (!user) {
-            alert('الرجاء إدخال اسم المستخدم!');
-            return;
-        }
+    function saveProfileAndGo() {
+        const name = document.getElementById('input-username').value.trim();
+        const age = document.getElementById('input-age').value;
+        const gender = document.getElementById('input-gender').value;
+        const avatar = document.getElementById('input-avatar-url').value.trim() || `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
 
-        currentUsername = user;
-        currentRoom = parseInt(room);
+        if(!name) return alert('أدخل اسمك!');
 
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('chat-screen').style.display = 'block';
-
-        fetchMessages();
+        userProfile = { name, age, gender, avatar, isVerified: true };
         
-        // استقبال الرسائل الفورية
-        supabaseClient
-            .channel('public:messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                if (payload.new.room_id === currentRoom) {
-                    appendMessage(payload.new);
-                }
-            })
-            .subscribe();
+        document.getElementById('bar-username').innerText = name;
+        document.getElementById('bar-avatar').src = avatar;
+
+        switchScreen('screen-welcome', 'screen-lobby');
     }
 
-    async function fetchMessages() {
-        const { data, error } = await supabaseClient
-            .from('messages')
-            .select('*')
-            .eq('room_id', currentRoom)
-            .order('created_at', { ascending: true });
+    function logout() { switchScreen('screen-lobby', 'screen-welcome'); }
 
-        if (error) {
-            console.error('خطأ بجلب الرسائل:', error);
-            return;
-        }
-
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '';
-        if (data) {
-            data.forEach(msg => appendMessage(msg));
-        }
+    function joinRoom(id, title) {
+        currentRoomId = id;
+        document.getElementById('chat-room-title').innerText = title;
+        switchScreen('screen-lobby', 'screen-chat');
+        fetchRoomMessages();
+        subscribeRealtime();
     }
 
-    function appendMessage(msg) {
-        const chatBox = document.getElementById('chat-box');
-        const div = document.createElement('div');
-        div.className = 'message';
-        div.innerHTML = `<span>${msg.username}:</span> ${msg.content}`;
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
+    function leaveRoom() {
+        if(roomChannel) supabaseClient.removeChannel(roomChannel);
+        switchScreen('screen-chat', 'screen-lobby');
     }
 
-    async function sendMessage() {
-        const input = document.getElementById('message-input');
+    function switchScreen(from, to) {
+        document.getElementById(from).classList.add('hidden');
+        document.getElementById(to).classList.remove('hidden');
+    }
+
+    async function fetchRoomMessages() {
+        const msgBox = document.getElementById('messages-box');
+        msgBox.innerHTML = '';
+        const { data } = await supabaseClient.from('messages').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true });
+        if(data) data.forEach(m => appendMessageUI(m));
+    }
+
+    function subscribeRealtime() {
+        if(roomChannel) supabaseClient.removeChannel(roomChannel);
+        roomChannel = supabaseClient.channel('room_' + currentRoomId);
+        roomChannel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoomId}` }, p => {
+            appendMessageUI(p.new);
+        }).subscribe();
+    }
+
+    async function sendChatMessage() {
+        const input = document.getElementById('chat-input-msg');
         const content = input.value.trim();
+        if(!content) return;
+        input.value = '';
 
-        if (!content) return;
+        // نرسل بيانات المستخدم بداخل محتوى الرسالة بصيغة مجدولة
+        const payload = {
+            sender: userProfile.name,
+            age: userProfile.age,
+            gender: userProfile.gender,
+            avatar: userProfile.avatar,
+            text: content
+        };
 
-        const { error } = await supabaseClient
-            .from('messages')
-            .insert([{ room_id: currentRoom, username: currentUsername, content: content }]);
+        await supabaseClient.from('messages').insert([{
+            room_id: currentRoomId,
+            username: userProfile.name,
+            content: JSON.stringify(payload)
+        }]);
+    }
 
-        if (error) {
-            alert('فشل إرسال الرسالة: ' + error.message);
+    function appendMessageUI(msg) {
+        const msgBox = document.getElementById('messages-box');
+        let data = { sender: msg.username, age: '22', gender: 'ذكر', avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${msg.username}`, text: msg.content };
+
+        try { data = JSON.parse(msg.content); } catch(e){}
+
+        const isMe = data.sender === userProfile.name;
+        const div = document.createElement('div');
+        div.className = `msg-bubble ${isMe ? 'msg-me' : 'msg-other'}`;
+
+        div.innerHTML = `
+            <div class="msg-user-info" onclick="openProfileModal('${data.sender}', '${data.age}', '${data.gender}', '${data.avatar}')">
+                <img class="msg-avatar" src="${data.avatar}">
+                <strong style="font-size:12px;">${data.sender} ☑️</strong>
+            </div>
+            <div>${data.text}</div>
+        `;
+
+        msgBox.appendChild(div);
+        msgBox.scrollTop = msgBox.scrollHeight;
+    }
+
+    function openProfileModal(name, age, gender, avatar) {
+        selectedChatUser = name;
+        document.getElementById('modal-name').innerText = `${name} ☑️`;
+        document.getElementById('modal-img').src = avatar;
+        document.getElementById('modal-details').innerText = `العمر: ${age} سنة | الجنس: ${gender}`;
+
+        // إذا كنت أنت المسؤول (علي) يظهر زر الطرد
+        if(userProfile.name === 'علي' && name !== 'علي') {
+            document.getElementById('btn-kick-user').classList.remove('hidden');
         } else {
-            input.value = '';
+            document.getElementById('btn-kick-user').classList.add('hidden');
         }
+
+        document.getElementById('modal-profile').classList.remove('hidden');
+    }
+
+    function closeProfileModal() { document.getElementById('modal-profile').classList.add('hidden'); }
+
+    async function kickSelectedUser() {
+        if(!selectedChatUser) return;
+        await supabaseClient.from('room_bans').insert([{ room_id: currentRoomId, username: selectedChatUser }]);
+        alert(`تم طرد ${selectedChatUser} بنجاح! 🚫`);
+        closeProfileModal();
     }
 </script>
 
 </body>
-</html>
+    </html>
+    
