@@ -48,9 +48,9 @@
 </div>
 
 <script>
-    // البيانات المباشرة لمشروع Supabase
+    // بيانات Supabase الصحيحة
     const SUPABASE_URL = 'https://wiahoicutalnheblndek.supabase.co';
-    const SUPABASE_ANON_KEY = 'Sb_publishable_hhO_cV9Es5-jP09bC51ErA_9dmPIgch';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpYWhvaWN1dGFsbmhlYmxuZGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxOTg1MjIsImV4cCI6MjEwNDc3NDUyMn0.unasXFy1XiJyxrliCarNJs9eC2FEJ_6UrNzWq4myvhA';
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -74,7 +74,7 @@
 
         fetchMessages();
         
-        // استقبال الرسائل الفورية مباشرة عند إرسالها
+        // استقبال الرسائل الفورية
         supabaseClient
             .channel('public:messages')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
