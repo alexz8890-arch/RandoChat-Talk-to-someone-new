@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>راندو تشات | Random Chat Badoo Style</title>
+    <title>راندو تشات VIP - التحديث الشامل مع الدول</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-main: #0b0f19;
-            --card-bg: rgba(22, 30, 46, 0.85);
+            --card-bg: rgba(22, 30, 46, 0.95);
             --primary: #38bdf8;
-            --badoo-pink: #7856ff;
-            --badoo-gradient: linear-gradient(135deg, #7856ff, #ff3366);
-            --vip-gold: #fbbf24;
+            --accent-gradient: linear-gradient(135deg, #0284c7, #2563eb);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --bubble-me: #0284c7;
@@ -25,32 +23,33 @@
         body { background: radial-gradient(circle at top, #1e1b4b 0%, var(--bg-main) 80%); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
 
         .app-container {
-            width: 100%; max-width: 460px; height: 94vh;
+            width: 100%; max-width: 460px; height: 95vh;
             background: var(--card-bg); backdrop-filter: blur(16px);
             border: 1px solid var(--border-glass); border-radius: 24px;
             display: flex; flex-direction: column; overflow: hidden;
             box-shadow: 0 20px 50px rgba(0,0,0,0.7); position: relative;
         }
 
-        .screen { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 20px; overflow-y: auto; }
+        .screen { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 18px; overflow-y: auto; }
         .hidden { display: none !important; }
 
-        .welcome-title { text-align: center; font-size: 28px; font-weight: 800; background: var(--badoo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-title { text-align: center; font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
         .welcome-sub { text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
 
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
-        input, select { width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glass); border-radius: 12px; color: #fff; font-size: 14px; outline: none; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); }
+        input, select, textarea { width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glass); border-radius: 12px; color: #fff; font-size: 14px; outline: none; }
+        textarea { resize: none; height: 65px; }
 
-        .avatar-picker { display: flex; gap: 10px; align-items: center; justify-content: center; margin-bottom: 15px; }
-        .avatar-preview { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--badoo-pink); object-fit: cover; }
+        .avatar-upload-box { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .avatar-preview { width: 75px; height: 75px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; }
+        .file-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; }
 
-        .btn-primary { width: 100%; padding: 14px; background: var(--badoo-gradient); border: none; border-radius: 12px; color: #fff; font-weight: 700; cursor: pointer; }
+        .btn-primary { width: 100%; padding: 12px; background: var(--accent-gradient); border: none; border-radius: 12px; color: #fff; font-weight: 700; cursor: pointer; }
 
-        .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-glass); margin-bottom: 15px; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-glass); margin-bottom: 12px; }
         .user-badge { display: flex; align-items: center; gap: 8px; font-weight: 700; }
         .user-avatar-small { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
-        .badge-verified { color: #38bdf8; font-size: 14px; }
 
         .room-card { background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-glass); padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; }
 
@@ -61,30 +60,46 @@
 
         .msg-user-info { display: flex; align-items: center; gap: 6px; cursor: pointer; margin-bottom: 4px; }
         .msg-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+        .msg-img { max-width: 100%; border-radius: 10px; margin-top: 6px; }
 
-        /* Modal Profile Card */
-        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 99; }
-        .profile-card { background: #1e293b; border: 1px solid var(--border-glass); width: 100%; max-width: 320px; border-radius: 20px; padding: 20px; text-align: center; }
-        .profile-card img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--badoo-pink); margin-bottom: 10px; object-fit: cover; }
-        .btn-kick { background: #ef4444; color: #fff; border: none; padding: 10px 16px; border-radius: 10px; margin-top: 10px; width: 100%; font-weight: 700; cursor: pointer; }
-        .btn-close-modal { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 8px; border-radius: 8px; margin-top: 8px; width: 100%; cursor: pointer; }
+        .chat-input-bar { display: flex; gap: 6px; padding-top: 10px; align-items: center; }
+        .icon-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-glass); width: 40px; height: 40px; border-radius: 10px; color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 16px; }
+
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; padding: 15px; z-index: 99; }
+        .profile-card { background: #1e293b; border: 1px solid var(--border-glass); width: 100%; max-width: 350px; border-radius: 20px; padding: 18px; text-align: center; max-height: 88vh; overflow-y: auto; }
+        .profile-card img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 8px; object-fit: cover; }
+        
+        .bio-box { background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 10px; font-size: 12px; color: var(--text-muted); margin: 8px 0; border: 1px dashed var(--border-glass); }
+
+        .btn-friend { background: #3b82f6; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-like { background: #ec4899; color: #fff; border: none; padding: 8px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-kick { background: #ef4444; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-dm { background: #10b981; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-mod { background: #8b5cf6; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-action { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 8px; border-radius: 8px; margin-top: 6px; width: 100%; cursor: pointer; }
+
+        .post-item { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-glass); padding: 10px; border-radius: 12px; margin-top: 8px; text-align: right; font-size: 13px; }
+
+        .call-card { text-align: center; color: #fff; }
+        .pulse-call { animation: pulse 1.5s infinite; width: 100px; height: 100px; border-radius: 50%; margin: 20px auto; border: 4px solid #10b981; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
     </style>
 </head>
 <body>
 
 <div class="app-container">
 
-    <!-- 1. شاشة الملف الشخصي Badoo Style -->
+    <!-- 1. شاشة إنشاء الملف الشخصي -->
     <div id="screen-welcome" class="screen">
-        <div class="welcome-title">راندو تشات VIP ⚡</div>
+        <div class="welcome-title">راندو تشات ⚡</div>
         <div class="welcome-sub">أنشئ ملفك الشخصي وابدأ التواصل</div>
 
-        <div class="avatar-picker">
+        <div class="avatar-upload-box">
             <img id="preview-avatar" class="avatar-preview" src="https://api.dicebear.com/7.x/bottts/svg?seed=Ali">
-            <div>
-                <label style="font-size: 12px; color: var(--text-muted);">رابط صورتك أو اختار رمز:</label>
-                <input type="text" id="input-avatar-url" placeholder="رابط صورة..." onchange="updateAvatarPreview(this.value)">
-            </div>
+            <label>
+                <input type="file" id="input-avatar-file" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)">
+                <span class="file-btn">📁 اختيار صورة المعرض</span>
+            </label>
         </div>
 
         <div class="form-group">
@@ -102,9 +117,51 @@
                 <select id="input-gender">
                     <option value="ذكر">ذكر ♂</option>
                     <option value="أنثى">أنثى ♀</option>
-                    <option value="غير محدد">غير محدد ⚧</option>
                 </select>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label>البلد (الدولة):</label>
+            <select id="input-country">
+                <!-- الدول العربية -->
+                <option value="🇸🇾 سوريا">🇸🇾 سوريا</option>
+                <option value="🇸🇦 السعودية">🇸🇦 السعودية</option>
+                <option value="🇪🇬 مصر">🇪🇬 مصر</option>
+                <option value="🇮🇶 العراق">🇮🇶 العراق</option>
+                <option value="🇦🇪 الإمارات">🇦🇪 الإمارات</option>
+                <option value="🇱🇧 لبنان">🇱🇧 لبنان</option>
+                <option value="🇯🇴 الأردن">🇯🇴 الأردن</option>
+                <option value="🇵🇸 فلسطين">🇵🇸 فلسطين</option>
+                <option value="🇰🇼 الكويت">🇰🇼 الكويت</option>
+                <option value="🇶🇦 قطر">🇶🇦 قطر</option>
+                <option value="🇧🇭 البحرين">🇧🇭 البحرين</option>
+                <option value="🇴🇲 عمان">🇴🇲 عمان</option>
+                <option value="🇾🇪 اليمن">🇾🇪 اليمن</option>
+                <option value="🇩🇿 الجزائر">🇩🇿 الجزائر</option>
+
+                <option value="🇲🇦 المغرب">🇲🇦 المغرب</option>
+                <option value="🇹🇳 تونس">🇹🇳 تونس</option>
+                <option value="🇱🇾 ليبيا">🇱🇾 ليبيا</option>
+                <option value="🇸🇩 السودان">🇸🇩 السودان</option>
+                <!-- الدول الأجنبية -->
+                <option value="🇹🇷 تركيا">🇹🇷 تركيا</option>
+                <option value="🇩🇪 ألمانيا">🇩🇪 ألمانيا</option>
+                <option value="🇸🇪 السويد">🇸🇪 السويد</option>
+                <option value="🇺🇸 أمريكا">🇺🇸 أمريكا</option>
+                <option value="🇬🇧 بريطانيا">🇬🇧 بريطانيا</option>
+                <option value="🇫🇷 فرنسا">🇫🇷 فرنسا</option>
+                <option value="🇨🇦 كندا">🇨🇦 كندا</option>
+                <option value="🇷🇺 روسيا">🇷🇺 روسيا</option>
+                <option value="🇳🇱 هولندا">🇳🇱 هولندا</option>
+                <option value="🇦🇺 أستراليا">🇦🇺 أستراليا</option>
+                <option value="🌐 دولة أخرى">🌐 دولة أخرى</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>الوصف الشخصي (البايو):</label>
+            <textarea id="input-bio" placeholder="اكتب شيئاً عن نفسك..."></textarea>
         </div>
 
         <button class="btn-primary" onclick="saveProfileAndGo()">دخول المنصة 🚀</button>
@@ -113,12 +170,15 @@
     <!-- 2. شاشة الغرف -->
     <div id="screen-lobby" class="screen hidden">
         <div class="header-bar">
-            <div class="user-badge">
+            <div class="user-badge" onclick="openMyOwnProfile()">
                 <img id="bar-avatar" class="user-avatar-small" src="">
                 <span id="bar-username">علي</span>
-                <span class="badge-verified">☑️</span>
+                <span style="color:#38bdf8;">☑️</span>
             </div>
-            <button class="btn-close-modal" style="width:auto; padding:6px 12px;" onclick="logout()">خروج</button>
+            <div>
+                <button id="btn-unban-all" class="file-btn hidden" style="background:#f59e0b;" onclick="unbanAllUsers()">🔓 فك الطرد</button>
+                <button class="file-btn" onclick="logout()">خروج</button>
+            </div>
         </div>
 
         <div style="margin-bottom: 12px; font-weight: 700; font-size: 14px; color: var(--text-muted);">اختر غرفة للدردشة:</div>
@@ -131,39 +191,106 @@
             <span style="color:#4ade80; font-size:12px;">● متصل</span>
         </div>
 
-        <div class="room-card" onclick="joinRoom(2, '☕ روقان Badoo')">
+        <div class="room-card" onclick="joinRoom(2, '☕ روقان')">
             <div>
-                <h4>☕ روقان Badoo</h4>
-                <p style="font-size:12px; color:var(--text-muted);">مساحة خاصة للمميزين</p>
+                <h4>☕ روقان</h4>
+                <p style="font-size:12px; color:var(--text-muted);">مساحة هادئة للمحادثات الرايقة</p>
             </div>
             <span style="color:#4ade80; font-size:12px;">● متصل</span>
         </div>
     </div>
 
-    <!-- 3. شاشة الدردشة -->
+    <!-- 3. شاشة الدردشة الرئيسية -->
     <div id="screen-chat" class="screen hidden">
         <div class="header-bar">
-            <h4 id="chat-room-title">الغرفة العامة</h4>
-            <button class="btn-close-modal" style="width:auto;" onclick="leaveRoom()">مغادرة 🚪</button>
+            <div>
+                <h4 id="chat-room-title">الغرفة العامة</h4>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="file-btn" style="background:#ef4444;" onclick="clearChatUI()">🗑️ مسح</button>
+                <button class="file-btn" onclick="leaveRoom()">مغادرة 🚪</button>
+            </div>
         </div>
 
         <div id="messages-box" class="messages-box"></div>
 
-        <div style="display:flex; gap:8px; padding-top:10px;">
+        <div class="chat-input-bar">
+            <label class="icon-btn" title="إرسال صورة">
+                <input type="file" accept="image/*" style="display:none;" onchange="sendImageMsg(this, false)">
+                📷
+            </label>
+            <button class="icon-btn" onclick="insertEmoji('😊')">😊</button>
             <input type="text" id="chat-input-msg" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-            <button class="btn-primary" style="width:60px;" onclick="sendChatMessage()">➤</button>
+            <button class="btn-primary" style="width:50px;" onclick="sendChatMessage()">➤</button>
         </div>
     </div>
 
-    <!-- 4. نافذة البروفايل (Modal) -->
+    <!-- 4. شاشة المحادثة الخاصة (DM) -->
+    <div id="screen-dm" class="screen hidden">
+        <div class="header-bar">
+            <div class="user-badge">
+                <img id="dm-target-avatar" class="user-avatar-small" src="">
+                <span id="dm-target-name">الخاص</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="file-btn" style="background:#10b981;" onclick="startCall()">📞 مكالمة</button>
+                <button class="file-btn" onclick="closePrivateChat()">إغلاق ✖</button>
+            </div>
+        </div>
+
+        <div id="dm-messages-box" class="messages-box"></div>
+
+        <div class="chat-input-bar">
+            <label class="icon-btn" title="إرسال صورة">
+                <input type="file" accept="image/*" style="display:none;" onchange="sendImageMsg(this, true)">
+                📷
+            </label>
+            <button id="btn-record-voice" class="icon-btn" title="فويس" onclick="toggleVoiceRecord()">🎙️</button>
+            <input type="text" id="dm-input-msg" placeholder="اكتب بالخاص..." onkeydown="if(event.key==='Enter') sendPrivateMessage()">
+            <button class="btn-primary" style="width:50px;" onclick="sendPrivateMessage()">➤</button>
+        </div>
+    </div>
+
+    <!-- 5. نافذة البروفايل المتقدمة (Modal) -->
     <div id="modal-profile" class="modal-overlay hidden">
         <div class="profile-card">
             <img id="modal-img" src="">
             <h3 id="modal-name">علي ☑️</h3>
-            <p id="modal-details" style="font-size:13px; color:var(--text-muted); margin: 6px 0;"></p>
+            <p id="modal-details" style="font-size:12px; color:var(--text-muted); margin-top:2px;"></p>
             
+            <div id="modal-bio" class="bio-box">لا يوجد وصف شخصي بعد.</div>
+
+            <!-- أزرار التفاعل والتواصل -->
+            <button id="btn-like-profile" class="btn-like" onclick="likeCurrentProfile()">❤️ إعجاب بالبروفايل (<span id="profile-likes-count">0</span>)</button>
+            <button id="btn-add-friend" class="btn-friend" onclick="handleFriendAction()">➕ إضافة صديق</button>
+            <button id="btn-open-dm" class="btn-dm hidden" onclick="startPrivateChatFromModal()">مراسلة على الخاص 💬</button>
+            
+            <!-- أزرار الإدارة للأدمن فقط -->
+            <button id="btn-make-mod" class="btn-mod hidden" onclick="makeModSelectedUser()">تعيين كمشرف 🛡️</button>
             <button id="btn-kick-user" class="btn-kick hidden" onclick="kickSelectedUser()">طرد من الغرفة 🚫</button>
-            <button class="btn-close-modal" onclick="closeProfileModal()">إغلاق</button>
+
+            <!-- قسم منشورات البروفايل -->
+            <div style="margin-top:14px; border-top:1px solid var(--border-glass); padding-top:10px; text-align:right;">
+                <h5 style="color:var(--primary); margin-bottom:6px;">📌 المنشورات:</h5>
+                <div id="my-post-input-box" class="hidden">
+                    <input type="text" id="input-new-post" placeholder="اكتب منشوراً جديداً..." style="font-size:12px; margin-bottom:4px;">
+                    <button class="btn-primary" style="padding:6px; font-size:12px;" onclick="createNewPost()">نشر 📝</button>
+                </div>
+                <div id="profile-posts-list"></div>
+            </div>
+
+            <button class="btn-action" onclick="closeProfileModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- 6. نافذة المكالمة -->
+    <div id="modal-call" class="modal-overlay hidden">
+        <div class="profile-card call-card">
+            <h3>مكالمة جارية...</h3>
+            <img id="call-user-img" class="pulse-call" src="">
+            <h4 id="call-user-name">علي</h4>
+            <p style="color:#10b981; margin:10px 0;">متصل الآن 🎙️</p>
+            <button class="btn-kick" onclick="endCall()">إنهاء المكالمة 🚫</button>
         </div>
     </div>
 
@@ -174,136 +301,69 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpYWhvaWN1dGFsbmhlYmxuZGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxOTg1MjIsImV4cCI6MjEwNDc3NDUyMn0.unasXFy1XiJyxrliCarNJs9eC2FEJ_6UrNzWq4myvhA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let userProfile = { name: 'علي', age: 22, gender: 'ذكر', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ali', isVerified: true };
+    const ADMIN_PASSWORD = '123456';
+
+    let userProfile = { name: 'علي', age: 22, gender: 'ذكر', country: '🇸🇾 سوريا', bio: '', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ali' };
     let currentRoomId = 1;
     let selectedChatUser = null;
+    let privateTargetUser = null;
     let roomChannel = null;
+    let dmChannel = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
 
-    function updateAvatarPreview(url) {
-        if(url) document.getElementById('preview-avatar').src = url;
+    let friendStore = {}; 
+    let profileLikes = {}; 
+    let userPosts = {}; 
+
+    function handleAvatarFile(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview-avatar').src = e.target.result;
+                userProfile.avatar = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
-    function saveProfileAndGo() {
+    async function saveProfileAndGo() {
         const name = document.getElementById('input-username').value.trim();
         const age = document.getElementById('input-age').value;
         const gender = document.getElementById('input-gender').value;
-        const avatar = document.getElementById('input-avatar-url').value.trim() || `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
+        const country = document.getElementById('input-country').value;
+        const bio = document.getElementById('input-bio').value.trim();
 
         if(!name) return alert('أدخل اسمك!');
 
-        userProfile = { name, age, gender, avatar, isVerified: true };
+        if (name === 'علي') {
+            const pwd = prompt('أدخل كلمة سر الأدمن المخصصة لـ علي:');
+            if (pwd !== ADMIN_PASSWORD) {
+                alert('كلمة السر خاطئة! لا يمكنك انتحال شخصية الأدمن.');
+                return;
+            }
+        }
+
+        userProfile.name = name;
+        userProfile.age = age;
+        userProfile.gender = gender;
+        userProfile.country = country;
+        userProfile.bio = bio || 'لا يوجد وصف شخصي بعد.';
+        if(!userProfile.avatar) userProfile.avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
         
-        document.getElementById('bar-username').innerText = name;
-        document.getElementById('bar-avatar').src = avatar;
+        document.getElementById('bar-username').innerText = `${name} (${country})`;
+        document.getElementById('bar-avatar').src = userProfile.avatar;
+
+        if (userProfile.name === 'علي') {
+            document.getElementById('btn-unban-all').classList.remove('hidden');
+        }
 
         switchScreen('screen-welcome', 'screen-lobby');
     }
 
     function logout() { switchScreen('screen-lobby', 'screen-welcome'); }
 
-    function joinRoom(id, title) {
-        currentRoomId = id;
-        document.getElementById('chat-room-title').innerText = title;
-        switchScreen('screen-lobby', 'screen-chat');
-        fetchRoomMessages();
-        subscribeRealtime();
-    }
-
-    function leaveRoom() {
-        if(roomChannel) supabaseClient.removeChannel(roomChannel);
-        switchScreen('screen-chat', 'screen-lobby');
-    }
-
-    function switchScreen(from, to) {
-        document.getElementById(from).classList.add('hidden');
-        document.getElementById(to).classList.remove('hidden');
-    }
-
-    async function fetchRoomMessages() {
-        const msgBox = document.getElementById('messages-box');
-        msgBox.innerHTML = '';
-        const { data } = await supabaseClient.from('messages').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true });
-        if(data) data.forEach(m => appendMessageUI(m));
-    }
-
-    function subscribeRealtime() {
-        if(roomChannel) supabaseClient.removeChannel(roomChannel);
-        roomChannel = supabaseClient.channel('room_' + currentRoomId);
-        roomChannel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${currentRoomId}` }, p => {
-            appendMessageUI(p.new);
-        }).subscribe();
-    }
-
-    async function sendChatMessage() {
-        const input = document.getElementById('chat-input-msg');
-        const content = input.value.trim();
-        if(!content) return;
-        input.value = '';
-
-        // نرسل بيانات المستخدم بداخل محتوى الرسالة بصيغة مجدولة
-        const payload = {
-            sender: userProfile.name,
-            age: userProfile.age,
-            gender: userProfile.gender,
-            avatar: userProfile.avatar,
-            text: content
-        };
-
-        await supabaseClient.from('messages').insert([{
-            room_id: currentRoomId,
-            username: userProfile.name,
-            content: JSON.stringify(payload)
-        }]);
-    }
-
-    function appendMessageUI(msg) {
-        const msgBox = document.getElementById('messages-box');
-        let data = { sender: msg.username, age: '22', gender: 'ذكر', avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${msg.username}`, text: msg.content };
-
-        try { data = JSON.parse(msg.content); } catch(e){}
-
-        const isMe = data.sender === userProfile.name;
-        const div = document.createElement('div');
-        div.className = `msg-bubble ${isMe ? 'msg-me' : 'msg-other'}`;
-
-        div.innerHTML = `
-            <div class="msg-user-info" onclick="openProfileModal('${data.sender}', '${data.age}', '${data.gender}', '${data.avatar}')">
-                <img class="msg-avatar" src="${data.avatar}">
-                <strong style="font-size:12px;">${data.sender} ☑️</strong>
-            </div>
-            <div>${data.text}</div>
-        `;
-
-        msgBox.appendChild(div);
-        msgBox.scrollTop = msgBox.scrollHeight;
-    }
-
-    function openProfileModal(name, age, gender, avatar) {
-        selectedChatUser = name;
-        document.getElementById('modal-name').innerText = `${name} ☑️`;
-        document.getElementById('modal-img').src = avatar;
-        document.getElementById('modal-details').innerText = `العمر: ${age} سنة | الجنس: ${gender}`;
-
-        // إذا كنت أنت المسؤول (علي) يظهر زر الطرد
-        if(userProfile.name === 'علي' && name !== 'علي') {
-            document.getElementById('btn-kick-user').classList.remove('hidden');
-        } else {
-            document.getElementById('btn-kick-user').classList.add('hidden');
-        }
-
-        document.getElementById('modal-profile').classList.remove('hidden');
-    }
-
-    function closeProfileModal() { document.getElementById('modal-profile').classList.add('hidden'); }
-
-    async function kickSelectedUser() {
-        if(!selectedChatUser) return;
-        await supabaseClient.from('room_bans').insert([{ room_id: currentRoomId, username: selectedChatUser }]);
-        alert(`تم طرد ${selectedChatUser} بنجاح! 🚫`);
-        closeProfileModal();
-    }
-</script>
-
-</body>
-    </html>
-    
+    async function joinRoom(id, title) {
+        const { data: banData } = await supabaseClient.from('room_bans').select('*').eq('username', userProfile.name);
+ 
