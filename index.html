@@ -1,368 +1,179 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>راندو تشات VIP - النسخة المحدثة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg-main: #0b0f19;
-            --card-bg: rgba(22, 30, 46, 0.95);
-            --primary: #38bdf8;
-            --accent-gradient: linear-gradient(135deg, #0284c7, #2563eb);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --bubble-me: #0284c7;
-            --bubble-other: #1e293b;
-            --border-glass: rgba(255, 255, 255, 0.1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
-        body { background: radial-gradient(circle at top, #1e1b4b 0%, var(--bg-main) 80%); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
-
-        .app-container {
-            width: 100%; max-width: 460px; height: 95vh;
-            background: var(--card-bg); backdrop-filter: blur(16px);
-            border: 1px solid var(--border-glass); border-radius: 24px;
-            display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7); position: relative;
-        }
-
-        .screen { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 18px; overflow-y: auto; }
-        .hidden { display: none !important; }
-
-        .welcome-title { text-align: center; font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
-        .welcome-sub { text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
-
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); }
-        input, select, textarea { width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glass); border-radius: 12px; color: #fff; font-size: 14px; outline: none; }
-        textarea { resize: none; height: 65px; }
-
-        .avatar-upload-box { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 12px; }
-        .avatar-preview { width: 75px; height: 75px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; }
-        .file-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; }
-
-        .btn-primary { width: 100%; padding: 12px; background: var(--accent-gradient); border: none; border-radius: 12px; color: #fff; font-weight: 700; cursor: pointer; }
-
-        .header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-glass); margin-bottom: 12px; }
-        .user-badge { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; }
-        .user-avatar-small { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
-
-        .room-card { background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-glass); padding: 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; }
-
-        .messages-box { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 12px; }
-        .msg-bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 14px; position: relative; }
-        .msg-me { align-self: flex-start; background: var(--bubble-me); color: #fff; border-bottom-right-radius: 4px; }
-        .msg-other { align-self: flex-end; background: var(--bubble-other); color: #fff; border-bottom-left-radius: 4px; border: 1px solid var(--border-glass); }
-
-        .msg-user-info { display: flex; align-items: center; gap: 6px; cursor: pointer; margin-bottom: 4px; }
-        .msg-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-        .msg-img { max-width: 100%; border-radius: 10px; margin-top: 6px; }
-
-        .chat-input-bar { display: flex; gap: 6px; padding-top: 10px; align-items: center; }
-        .icon-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-glass); width: 40px; height: 40px; border-radius: 10px; color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 16px; }
-
-        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; padding: 15px; z-index: 99; }
-        .profile-card { background: #1e293b; border: 1px solid var(--border-glass); width: 100%; max-width: 350px; border-radius: 20px; padding: 18px; text-align: center; max-height: 88vh; overflow-y: auto; }
-        .profile-card img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 8px; object-fit: cover; }
-        
-        .bio-box { background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 10px; font-size: 12px; color: var(--text-muted); margin: 8px 0; border: 1px dashed var(--border-glass); }
-
-        .btn-friend { background: #3b82f6; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
-        .btn-like { background: #ec4899; color: #fff; border: none; padding: 8px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
-        .btn-kick { background: #ef4444; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
-        .btn-dm { background: #10b981; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
-        .btn-mod { background: #8b5cf6; color: #fff; border: none; padding: 10px; border-radius: 10px; margin-top: 6px; width: 100%; font-weight: 700; cursor: pointer; }
-        .btn-action { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 8px; border-radius: 8px; margin-top: 6px; width: 100%; cursor: pointer; }
-
-        .call-card { text-align: center; color: #fff; }
-        .pulse-call { animation: pulse 1.5s infinite; width: 100px; height: 100px; border-radius: 50%; margin: 20px auto; border: 4px solid #10b981; }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>راندو تشات ⚡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#070b14;--panel:#111827;--panel2:#172033;--primary:#38bdf8;--blue:#2563eb;--green:#10b981;--pink:#ec4899;--red:#ef4444;--muted:#94a3b8;--line:rgba(255,255,255,.09);--shadow:0 24px 80px rgba(0,0,0,.45)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Tajawal,sans-serif}
+body{min-height:100vh;background:radial-gradient(circle at 20% 0,#20245d 0,#070b14 48%,#03050a 100%);color:#f8fafc;padding:10px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{width:min(100%,520px);height:calc(100vh - 20px);margin:auto;background:rgba(13,19,32,.94);border:1px solid var(--line);border-radius:26px;overflow:hidden;box-shadow:var(--shadow);position:relative}
+.screen{height:100%;display:flex;flex-direction:column;padding:18px;overflow:auto}.hidden{display:none!important}
+.brand{text-align:center;font-size:29px;font-weight:800;color:var(--primary);margin-top:8px}.sub{text-align:center;color:var(--muted);font-size:13px;margin:4px 0 18px}
+.tabs{display:flex;gap:7px;margin-bottom:14px}.tab{flex:1;padding:10px;border:1px solid var(--line);background:#0d1422;color:#fff;border-radius:12px}.tab.active{background:linear-gradient(135deg,#0284c7,#2563eb)}
+label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}.group{margin-bottom:11px}
+input,select,textarea{width:100%;border:1px solid var(--line);background:#0a1220;color:#fff;border-radius:12px;padding:12px;outline:none}textarea{min-height:72px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.btn{width:100%;border:0;border-radius:12px;padding:12px;color:#fff;font-weight:800;background:linear-gradient(135deg,#0284c7,#2563eb);margin-top:4px}.btn.secondary{background:#202b3f}.btn.green{background:#059669}.btn.red{background:#dc2626}.btn.pink{background:#db2777}.btn.small{width:auto;padding:8px 11px;font-size:12px}
+.avatarbox{text-align:center;margin-bottom:12px}.avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);background:#0b1220}.file{display:inline-block;margin-top:7px;padding:7px 13px;border-radius:20px;background:#202b3f;font-size:12px;cursor:pointer}.file input{display:none}
+.header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:12px;gap:8px}.me{display:flex;align-items:center;gap:8px;min-width:0}.me img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--primary)}.me span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rooms{display:grid;gap:10px}.room{padding:15px;border:1px solid var(--line);background:linear-gradient(145deg,rgba(30,41,59,.7),rgba(15,23,42,.7));border-radius:17px;cursor:pointer}.room h3{font-size:15px}.room p{font-size:12px;color:var(--muted);margin-top:3px}
+.messages{flex:1;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:5px 0 10px}.bubble{max-width:84%;padding:9px 12px;border-radius:16px;background:#202b3f;border:1px solid var(--line);align-self:flex-end}.bubble.mine{background:#0369a1;align-self:flex-start;border-bottom-right-radius:4px}.bubble:not(.mine){border-bottom-left-radius:4px}.meta{display:flex;align-items:center;gap:6px;font-size:10px;color:#cbd5e1;margin-bottom:4px}.meta img{width:23px;height:23px;border-radius:50%;object-fit:cover}.msgtext{white-space:pre-wrap;word-break:break-word}.msgimg{display:block;max-width:230px;border-radius:12px;margin-top:5px}.composer{display:flex;gap:6px;padding-top:8px}.composer input{flex:1}.icon{width:42px;height:42px;border:1px solid var(--line);background:#172033;color:#fff;border-radius:11px}.send{width:48px;height:42px;border:0;border-radius:11px;background:#0284c7;color:#fff;font-size:18px}
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(9px);display:flex;align-items:center;justify-content:center;padding:15px;z-index:50}.card{width:min(100%,390px);max-height:90vh;overflow:auto;background:#111827;border:1px solid var(--line);border-radius:22px;padding:18px;text-align:center}.card .bigavatar{width:92px;height:92px;border-radius:50%;object-fit:cover;border:3px solid var(--primary)}.bio{background:#0a1220;border:1px dashed var(--line);padding:10px;border-radius:12px;color:var(--muted);font-size:12px;margin:10px 0;text-align:right}.post{background:#172033;border:1px solid var(--line);padding:9px;border-radius:12px;margin-top:7px;text-align:right;font-size:13px}.list{display:grid;gap:7px;text-align:right}.notice{font-size:12px;padding:9px;border-radius:10px;background:#10243a;color:#bae6fd;margin-bottom:10px}.error{background:#3b1015;color:#fecaca}.online{color:#34d399;font-size:11px}.role{font-size:10px;color:#c4b5fd}
+#toast{position:absolute;left:14px;right:14px;bottom:14px;background:#0f172a;border:1px solid var(--line);padding:11px;border-radius:12px;z-index:100;text-align:center;box-shadow:var(--shadow)}
+.loading{position:absolute;inset:0;background:#070b14ee;z-index:200;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--primary)}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:13px}
+</style>
 </head>
 <body>
+<div class="app">
+<div id="loading" class="loading hidden">جاري التحميل…</div>
 
-<div class="app-container">
+<section id="authScreen" class="screen">
+  <div class="brand">راندو تشات ⚡</div>
+  <div class="sub">دردشة اجتماعية سريعة وآمنة</div>
+  <div class="tabs"><button id="tabLogin" class="tab active" onclick="setAuthMode('login')">تسجيل الدخول</button><button id="tabSignup" class="tab" onclick="setAuthMode('signup')">حساب جديد</button></div>
+  <div id="authNotice" class="notice">كل حساب له كلمة سر مستقلة. لا توجد بيانات جاهزة.</div>
+  <div class="group"><label>اسم المستخدم</label><input id="username" autocomplete="username" maxlength="24" placeholder="اكتب اسم المستخدم"></div>
+  <div class="group"><label>كلمة السر</label><input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="8 أحرف على الأقل"></div>
+  <div id="signupFields">
+    <div class="avatarbox"><img id="avatarPreview" class="avatar" src="https://api.dicebear.com/9.x/initials/svg?seed=User"><label class="file">📷 اختيار صورة<input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp"></label></div>
+    <div class="row"><div class="group"><label>العمر</label><input id="age" type="number" min="13" max="120" placeholder="العمر"></div><div class="group"><label>الجنس</label><select id="gender"><option value="">اختر</option><option>ذكر</option><option>أنثى</option><option>لا أرغب بالقول</option></select></div></div>
+    <div class="group"><label>البلد</label><select id="country"><option value="">اختر البلد</option><option>🇸🇾 سوريا</option><option>🇱🇧 لبنان</option><option>🇸🇦 السعودية</option><option>🇪🇬 مصر</option><option>🇮🇶 العراق</option><option>🇦🇪 الإمارات</option><option>🇯🇴 الأردن</option><option>🇵🇸 فلسطين</option><option>🇰🇼 الكويت</option><option>🇶🇦 قطر</option><option>🇩🇿 الجزائر</option><option>🇲🇦 المغرب</option><option>🇹🇳 تونس</option><option>🇱🇾 ليبيا</option><option>🇩🇪 ألمانيا</option><option>🇫🇷 فرنسا</option><option>🇨🇦 كندا</option><option>🇺🇸 أمريكا</option><option>🇬🇧 بريطانيا</option><option>🇦🇺 أستراليا</option><option>🌐 دولة أخرى</option></select></div>
+    <div class="group"><label>البايو</label><textarea id="bio" maxlength="500" placeholder="اكتب شيئاً عن نفسك…"></textarea></div>
+  </div>
+  <button id="authBtn" class="btn" onclick="submitAuth()">دخول المنصة 🚀</button>
+</section>
 
-    <!-- 1. شاشة إنشاء الملف الشخصي -->
-    <div id="screen-welcome" class="screen">
-        <div class="welcome-title">راندو تشات ⚡</div>
-        <div class="welcome-sub">أنشئ ملفك الشخصي وابدأ التواصل</div>
+<section id="lobbyScreen" class="screen hidden">
+  <div class="header"><div class="me" onclick="openProfile(currentUser.id)"><img id="barAvatar"><span id="barName"></span></div><button class="btn small secondary" onclick="logout()">خروج</button></div>
+  <div class="notice">مرحباً بك في راندو تشات. اختر الغرفة وابدأ.</div>
+  <div class="rooms">
+    <div class="room" onclick="joinRoom(1,'🌐 الغرفة العامة')"><h3>🌐 الغرفة العامة</h3><p>تعارف ومحادثات للجميع</p></div>
+    <div class="room" onclick="joinRoom(2,'☕ روقان')"><h3>☕ روقان</h3><p>مساحة هادئة للمحادثات الرايقة</p></div>
+  </div>
+</section>
 
-        <div class="avatar-upload-box">
-            <img id="preview-avatar" class="avatar-preview" src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest">
-            <label>
-                <input type="file" id="input-avatar-file" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)">
-                <span class="file-btn">📁 اختيار صورة المعرض</span>
-            </label>
-        </div>
+<section id="chatScreen" class="screen hidden">
+  <div class="header"><div><b id="roomTitle">الغرفة</b><div id="roomRole" class="role"></div></div><div class="row"><button class="btn small secondary" onclick="openUsers()">👥 الأعضاء</button><button class="btn small secondary" onclick="leaveRoom()">خروج</button></div></div>
+  <div id="messages" class="messages"></div>
+  <div class="composer"><label class="icon">📷<input id="roomImage" type="file" accept="image/jpeg,image/png,image/webp" style="display:none"></label><button class="icon" onclick="addEmoji()">😊</button><input id="roomInput" maxlength="2000" placeholder="اكتب رسالتك…" onkeydown="if(event.key==='Enter')sendRoomMessage()"><button class="send" onclick="sendRoomMessage()">➤</button></div>
+</section>
 
-        <div class="form-group">
-            <label>اسم المستخدم:</label>
-            <input type="text" id="input-username" placeholder="أدخل اسمك..." value="">
-        </div>
+<section id="dmScreen" class="screen hidden">
+  <div class="header"><div class="me"><img id="dmAvatar"><span id="dmName"></span></div><button class="btn small secondary" onclick="closeDM()">إغلاق</button></div>
+  <div id="dmMessages" class="messages"></div>
+  <div class="composer"><input id="dmInput" maxlength="2000" placeholder="اكتب رسالة خاصة…" onkeydown="if(event.key==='Enter')sendDM()"><button class="send" onclick="sendDM()">➤</button></div>
+</section>
 
-        <div class="form-group">
-            <label>كلمة السر (للأدمن علي فقط):</label>
-            <input type="password" id="input-password" placeholder="اتركه فارغاً إن لم تكن المالك" value="">
-        </div>
+<div id="profileModal" class="modal hidden"><div class="card">
+  <img id="pAvatar" class="bigavatar"><h2 id="pName" style="margin-top:6px"></h2><div id="pDetails" class="online"></div><div id="pBio" class="bio"></div>
+  <div class="row"><button id="likeBtn" class="btn pink" onclick="toggleLike()">❤️ <span id="likeCount">0</span></button><button id="friendBtn" class="btn" onclick="toggleFriend()">➕ صداقة</button></div>
+  <button id="dmBtn" class="btn green" onclick="openDMFromProfile()">💬 مراسلة خاصة</button>
+  <div id="modArea"></div><div id="posts"></div>
+  <div id="ownPostArea" class="hidden"><input id="postInput" maxlength="500" placeholder="اكتب منشوراً…"><button class="btn" onclick="createPost()">نشر 📝</button></div>
+  <button class="btn secondary" onclick="closeModal('profileModal')">إغلاق</button>
+</div></div>
 
-        <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex:1;">
-                <label>العمر:</label>
-                <input type="number" id="input-age" placeholder="العمر" value="">
-            </div>
-            <div class="form-group" style="flex:1;">
-                <label>الجنس:</label>
-                <select id="input-gender">
-                    <option value="" disabled selected>اختر الجنس</option>
-                    <option value="ذكر">ذكر ♂</option>
-                    <option value="أنثى">أنثى ♀</option>
-                    <option value="لا أرغب بالقول">لا أرغب بالقول</option>
-                    <option value="مثلي الجنس">مثلي الجنس</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>البلد (الدولة):</label>
-            <select id="input-country">
-                <option value="🇸🇾 سوريا">🇸🇾 سوريا</option>
-                <option value="🇸🇦 السعودية">🇸🇦 السعودية</option>
-                <option value="🇪🇬 مصر">🇪🇬 مصر</option>
-                <option value="🇮🇶 العراق">🇮🇶 العراق</option>
-                <option value="🇦🇪 الإمارات">🇦🇪 الإمارات</option>
-                <option value="🇱🇧 لبنان">🇱🇧 لبنان</option>
-                <option value="🇯🇴 الأردن">🇯🇴 الأردن</option>
-                <option value="🇵🇸 فلسطين">🇵🇸 فلسطين</option>
-                <option value="🇰🇼 الكويت">🇰🇼 الكويت</option>
-                <option value="🇶🇦 قطر">🇶🇦 قطر</option>
-                <option value="🇧🇭 البحرين">🇧🇭 البحرين</option>
-                <option value="🇴🇲 عمان">🇴🇲 عمان</option>
-                <option value="🇾🇪 اليمن">🇾🇪 اليمن</option>
-                <option value="🇩🇿 الجزائر">🇩🇿 الجزائر</option>
-                <option value="🇲🇦 المغرب">🇲🇦 المغرب</option>
-                <option value="🇹🇳 تونس">🇹🇳 تونس</option>
-                <option value="🇱🇾 ليبيا">🇱🇾 ليبيا</option>
-                <option value="🇸🇩 السودان">🇸🇩 السودان</option>
-                <option value="🇹🇷 تركيا">🇹🇷 تركيا</option>
-                <option value="🇩🇪 ألمانيا">🇩🇪 ألمانيا</option>
-                <option value="🇸🇪 السويد">🇸🇪 السويد</option>
-                <option value="🇺🇸 أمريكا">🇺🇸 أمريكا</option>
-                <option value="🇬🇧 بريطانيا">🇬🇧 بريطانيا</option>
-                <option value="🇫🇷 فرنسا">🇫🇷 فرنسا</option>
-                <option value="🇨🇦 كندا">🇨🇦 كندا</option>
-                <option value="🇷🇺 روسيا">🇷🇺 روسيا</option>
-                <option value="🇳🇱 هولندا">🇳🇱 هولندا</option>
-                <option value="🇦🇺 أستراليا">🇦🇺 أستراليا</option>
-                <option value="🌐 دولة أخرى">🌐 دولة أخرى</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>الوصف الشخصي (البايو):</label>
-            <textarea id="input-bio" placeholder="اكتب شيئاً عن نفسك..."></textarea>
-        </div>
-
-        <button class="btn-primary" onclick="saveProfileAndGo()">دخول المنصة 🚀</button>
-    </div>
-
-    <!-- 2. شاشة الغرف -->
-    <div id="screen-lobby" class="screen hidden">
-        <div class="header-bar">
-            <div class="user-badge" onclick="openMyOwnProfile()">
-                <img id="bar-avatar" class="user-avatar-small" src="">
-                <span id="bar-username"></span>
-                <span style="color:#38bdf8;">☑️</span>
-            </div>
-            <div>
-                <button id="btn-unban-all" class="file-btn hidden" style="background:#f59e0b;" onclick="unbanAllUsers()">🔓 فك الطرد</button>
-                <button class="file-btn" onclick="logout()">خروج</button>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 12px; font-weight: 700; font-size: 14px; color: var(--text-muted);">اختر غرفة للدردشة:</div>
-
-        <div class="room-card" onclick="joinRoom(1, '🌐 الغرفة العامة')">
-            <div>
-                <h4>🌐 الغرفة العامة</h4>
-                <p style="font-size:12px; color:var(--text-muted);">تعارف ومحادثات للجميع</p>
-            </div>
-            <span style="color:#4ade80; font-size:12px;">● متصل</span>
-        </div>
-
-        <div class="room-card" onclick="joinRoom(2, '☕ روقان')">
-            <div>
-                <h4>☕ روقان</h4>
-                <p style="font-size:12px; color:var(--text-muted);">مساحة هادئة للمحادثات الرايقة</p>
-            </div>
-            <span style="color:#4ade80; font-size:12px;">● متصل</span>
-        </div>
-    </div>
-
-    <!-- 3. شاشة الدردشة الرئيسية -->
-    <div id="screen-chat" class="screen hidden">
-        <div class="header-bar">
-            <div>
-                <h4 id="chat-room-title">الغرفة العامة</h4>
-            </div>
-            <div style="display:flex; gap:6px;">
-                <button class="file-btn" style="background:#ef4444;" onclick="clearChatUI()">🗑️ مسح</button>
-                <button class="file-btn" onclick="leaveRoom()">مغادرة 🚪</button>
-            </div>
-        </div>
-
-        <div id="messages-box" class="messages-box"></div>
-
-        <div class="chat-input-bar">
-            <label class="icon-btn" title="إرسال صورة">
-                <input type="file" accept="image/*" style="display:none;" onchange="sendImageMsg(this, false)">
-                📷
-            </label>
-            <button class="icon-btn" onclick="insertEmoji('😊')">😊</button>
-            <input type="text" id="chat-input-msg" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-            <button class="btn-primary" style="width:50px;" onclick="sendChatMessage()">➤</button>
-        </div>
-    </div>
-
-    <!-- 4. شاشة المحادثة الخاصة (DM) -->
-    <div id="screen-dm" class="screen hidden">
-        <div class="header-bar">
-            <div class="user-badge">
-                <img id="dm-target-avatar" class="user-avatar-small" src="">
-                <span id="dm-target-name">الخاص</span>
-            </div>
-            <div style="display:flex; gap:6px;">
-                <button class="file-btn" style="background:#10b981;" onclick="startCall()">📞 مكالمة</button>
-                <button class="file-btn" onclick="closePrivateChat()">إغلاق ✖</button>
-            </div>
-        </div>
-
-        <div id="dm-messages-box" class="messages-box"></div>
-
-        <div class="chat-input-bar">
-            <label class="icon-btn" title="إرسال صورة">
-                <input type="file" accept="image/*" style="display:none;" onchange="sendImageMsg(this, true)">
-                📷
-            </label>
-            <button id="btn-record-voice" class="icon-btn" title="فويس" onclick="toggleVoiceRecord()">🎙️</button>
-            <input type="text" id="dm-input-msg" placeholder="اكتب بالخاص..." onkeydown="if(event.key==='Enter') sendPrivateMessage()">
-            <button class="btn-primary" style="width:50px;" onclick="sendPrivateMessage()">➤</button>
-        </div>
-    </div>
-
-    <!-- 5. نافذة البروفايل المتقدمة (Modal) -->
-    <div id="modal-profile" class="modal-overlay hidden">
-        <div class="profile-card">
-            <img id="modal-img" src="">
-            <h3 id="modal-name"></h3>
-            <p id="modal-details" style="font-size:12px; color:var(--text-muted); margin-top:2px;"></p>
-            
-            <div id="modal-bio" class="bio-box">لا يوجد وصف شخصي بعد.</div>
-
-            <button id="btn-like-profile" class="btn-like" onclick="likeCurrentProfile()">❤️ إعجاب بالبروفايل (<span id="profile-likes-count">0</span>)</button>
-            <button id="btn-add-friend" class="btn-friend" onclick="handleFriendAction()">➕ إضافة صديق</button>
-            <button id="btn-open-dm" class="btn-dm hidden" onclick="startPrivateChatFromModal()">مراسلة على الخاص 💬</button>
-            
-            <button id="btn-make-mod" class="btn-mod hidden" onclick="makeModSelectedUser()">تعيين كمشرف 🛡️</button>
-            <button id="btn-kick-user" class="btn-kick hidden" onclick="kickSelectedUser()">طرد من الغرفة 🚫</button>
-
-            <div style="margin-top:14px; border-top:1px solid var(--border-glass); padding-top:10px; text-align:right;">
-                <h5 style="color:var(--primary); margin-bottom:6px;">📌 المنشورات:</h5>
-                <div id="my-post-input-box" class="hidden">
-                    <input type="text" id="input-new-post" placeholder="اكتب منشوراً جديداً..." style="font-size:12px; margin-bottom:4px;">
-                    <button class="btn-primary" style="padding:6px; font-size:12px;" onclick="createNewPost()">نشر 📝</button>
-                </div>
-                <div id="profile-posts-list"></div>
-            </div>
-
-            <button class="btn-action" onclick="closeProfileModal()">إغلاق</button>
-        </div>
-    </div>
-
-    <!-- 6. نافذة المكالمة -->
-    <div id="modal-call" class="modal-overlay hidden">
-        <div class="profile-card call-card">
-            <h3>مكالمة جارية...</h3>
-            <img id="call-user-img" class="pulse-call" src="">
-            <h4 id="call-user-name"></h4>
-            <p style="color:#10b981; margin:10px 0;">متصل الآن 🎙️</p>
-            <button class="btn-kick" onclick="endCall()">إنهاء المكالمة 🚫</button>
-        </div>
-    </div>
-
+<div id="usersModal" class="modal hidden"><div class="card"><h3>👥 أعضاء الغرفة</h3><div id="usersList" class="list" style="margin-top:12px"></div><button class="btn secondary" onclick="closeModal('usersModal')">إغلاق</button></div></div>
+<div id="toast" class="hidden"></div>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://wiahoicutalnheblndek.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpYWhvaWN1dGFsbmhlYmxuZGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxOTg1MjIsImV4cCI6MjEwNDc3NDUyMn0.unasXFy1XiJyxrliCarNJs9eC2FEJ_6UrNzWq4myvhA';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL='https://wiahoicutalnheblndek.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFjaWQiOiJ3aWFob2ljdXRhbG5oZWJsbmRla1cifQ.unasXFy1XiJyxrliCarNJs9eC2FEJ_6UrNzWq4myvhA';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let authMode='login',currentUser=null,currentProfile=null,currentRoom=null,currentRoomChannel=null,dmTarget=null,dmChannel=null,selectedProfile=null;
 
-    const ADMIN_PASSWORD = 'AlIXhiussam$@37274#@$jdke72gx83$';
+const $=id=>document.getElementById(id);
+function toast(t,error=false){$('toast').textContent=t;$('toast').classList.remove('hidden');$('toast').style.background=error?'#3b1015':'#0f172a';clearTimeout(window.__toast);window.__toast=setTimeout(()=>$('toast').classList.add('hidden'),2800)}
+function loading(v){$('loading').classList.toggle('hidden',!v)}
+function safe(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function internalEmail(name){return name.trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06ff_]/g,'').slice(0,32)+'@randochat.internal'}
+function setAuthMode(mode){authMode=mode;$('tabLogin').classList.toggle('active',mode==='login');$('tabSignup').classList.toggle('active',mode==='signup');$('signupFields').classList.toggle('hidden',mode==='login');$('authBtn').textContent=mode==='login'?'دخول المنصة 🚀':'إنشاء الحساب 🚀'}
+async function submitAuth(){
+ const name=$('username').value.trim(),pass=$('password').value;
+ if(name.length<3||name.length>24)return toast('اسم المستخدم يجب أن يكون بين 3 و24 حرفاً',true);
+ if(pass.length<8)return toast('كلمة السر يجب أن تكون 8 أحرف على الأقل',true);
+ loading(true);
+ try{
+  const email=internalEmail(name);
+  if(authMode==='login'){
+   const {data,error}=await sb.auth.signInWithPassword({email,password:pass});if(error)throw error;
+   await loadUser(data.user);
+  }else{
+   if(!$('gender').value||!$('country').value)return toast('أكمل الجنس والبلد',true);
+   const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{username:name}}});if(error)throw error;
+   if(!data.user)throw new Error('تعذر إنشاء الحساب');
+   if(!data.session){toast('تم إنشاء الحساب. فعّل Email Confirmations = OFF في Supabase ثم جرّب الدخول.');return}
+   await createProfile(data.user,name);
+  }
+ }catch(e){console.error(e);toast(e.message||'حدث خطأ',true)}finally{loading(false)}
+}
+async function createProfile(user,name){
+ let avatarUrl='https://api.dicebear.com/9.x/initials/svg?seed='+encodeURIComponent(name);
+ const f=$('avatarFile').files?.[0];
+ if(f){validateImage(f);avatarUrl=await uploadImage(f,user.id,'avatars')}
+ const {error}=await sb.from('profiles').insert({id:user.id,username:name,age:Number($('age').value)||null,gender:$('gender').value,country:$('country').value,bio:$('bio').value.trim(),avatar_url:avatarUrl,role:name==='علي'?'owner':'user'});
+ if(error)throw error;
+ await loadUser(user);
+}
+function validateImage(f){if(!['image/jpeg','image/png','image/webp'].includes(f.type))throw new Error('نوع الصورة غير مسموح');if(f.size>4*1024*1024)throw new Error('الصورة يجب ألا تتجاوز 4MB')}
+async function uploadImage(file,userId,folder){
+ validateImage(file);const ext=file.name.split('.').pop().toLowerCase(),path=`${userId}/${crypto.randomUUID()}.${ext}`;
+ const {error}=await sb.storage.from('rando-media').upload(`${folder}/${path}`,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
+ if(error)throw error;return sb.storage.from('rando-media').getPublicUrl(`${folder}/${path}`).data.publicUrl;
+}
+$('avatarFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;try{validateImage(f);$('avatarPreview').src=URL.createObjectURL(f)}catch(x){e.target.value='';toast(x.message,true)}});
 
-    let userProfile = { name: '', age: '', gender: '', country: '🇸🇾 سوريا', bio: '', avatar: '' };
-    let currentRoomId = 1;
-    let selectedChatUser = null;
-    let privateTargetUser = null;
-    let roomChannel = null;
-    let dmChannel = null;
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isRecording = false;
+async function loadUser(user){
+ const {data:p,error}=await sb.from('profiles').select('*').eq('id',user.id).single();if(error)throw error;
+ currentUser=user;currentProfile=p;$('barName').textContent=p.username+(p.role!=='user'?' 👑':'');$('barAvatar').src=p.avatar_url||'';
+ $('authScreen').classList.add('hidden');$('lobbyScreen').classList.remove('hidden');
+}
+async function boot(){const {data:{session}}=await sb.auth.getSession();if(session)try{await loadUser(session.user)}catch(e){console.error(e);await sb.auth.signOut()}}
+sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;show('authScreen');hide('lobbyScreen');hide('chatScreen');hide('dmScreen')}});
+function show(id){$(id).classList.remove('hidden')}function hide(id){$(id).classList.add('hidden')}
+async function logout(){if(currentRoomChannel)sb.removeChannel(currentRoomChannel);if(dmChannel)sb.removeChannel(dmChannel);await sb.auth.signOut();location.reload()}
 
-    let friendStore = {}; 
-    let profileLikes = {}; 
-    let userPosts = {}; 
+async function joinRoom(id,title){
+ currentRoom={id,title};$('roomTitle').textContent=title;hide('lobbyScreen');show('chatScreen');$('messages').innerHTML='<div class="empty">جاري تحميل الرسائل…</div>';
+ await loadRoomMessages();subscribeRoom();
+}
+async function loadRoomMessages(){
+ const {data,error}=await sb.from('messages').select('id,room_id,user_id,body,image_url,created_at,profiles(username,avatar_url,role)').eq('room_id',currentRoom.id).order('created_at',{ascending:true}).limit(100);
+ if(error)return toast(error.message,true);renderMessages(data||[],'messages');
+}
+function renderMessages(rows,target){
+ const el=$(target);el.innerHTML='';
+ if(!rows.length){el.innerHTML='<div class="empty">لا توجد رسائل بعد. كن أول من يبدأ الحديث ✨</div>';return}
+ rows.forEach(m=>{const mine=m.user_id===currentUser.id;const d=document.createElement('div');d.className='bubble '+(mine?'mine':'');d.innerHTML=`<div class="meta"><img src="${safe(m.profiles?.avatar_url||'')}"><span>${safe(m.profiles?.username||'مستخدم')}</span><span>${new Date(m.created_at).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'})}</span></div>${m.body?`<div class="msgtext">${safe(m.body)}</div>`:''}${m.image_url?`<img class="msgimg" src="${safe(m.image_url)}" loading="lazy">`:''}`;el.appendChild(d)});el.scrollTop=el.scrollHeight;
+}
+function subscribeRoom(){if(currentRoomChannel)sb.removeChannel(currentRoomChannel);currentRoomChannel=sb.channel('room-'+currentRoom.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room_id=eq.'+currentRoom.id},async payload=>{const {data}=await sb.from('messages').select('id,room_id,user_id,body,image_url,created_at,profiles(username,avatar_url,role)').eq('id',payload.new.id).single();if(data){const box=$('messages');const mine=data.user_id===currentUser.id;const d=document.createElement('div');d.className='bubble '+(mine?'mine':'');d.innerHTML=`<div class="meta"><img src="${safe(data.profiles?.avatar_url||'')}"><span>${safe(data.profiles?.username||'مستخدم')}</span><span>الآن</span></div>${data.body?`<div class="msgtext">${safe(data.body)}</div>`:''}${data.image_url?`<img class="msgimg" src="${safe(data.image_url)}">`:''}`;box.querySelector('.empty')?.remove();box.appendChild(d);box.scrollTop=box.scrollHeight}}).subscribe()}
+async function sendRoomMessage(){
+ const input=$('roomInput'),body=input.value.trim();if(!body)return;if(body.length>2000)return toast('الرسالة طويلة جداً',true);
+ const {error}=await sb.from('messages').insert({room_id:currentRoom.id,user_id:currentUser.id,body});if(error)toast(error.message,true);else input.value='';
+}
+$('roomImage').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f||!currentRoom)return;try{loading(true);const url=await uploadImage(f,currentUser.id,'messages');const {error}=await sb.from('messages').insert({room_id:currentRoom.id,user_id:currentUser.id,image_url:url});if(error)throw error}catch(x){toast(x.message,true)}finally{loading(false);e.target.value=''}})
+function addEmoji(){$('roomInput').value+=' 😊';$('roomInput').focus()}
+function leaveRoom(){if(currentRoomChannel)sb.removeChannel(currentRoomChannel);currentRoom=null;hide('chatScreen');show('lobbyScreen')}
 
-    function handleAvatarFile(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('preview-avatar').src = e.target.result;
-                userProfile.avatar = e.target.result;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    async function saveProfileAndGo() {
-        const name = document.getElementById('input-username').value.trim();
-        const passwordInput = document.getElementById('input-password').value;
-        const age = document.getElementById('input-age').value;
-        const gender = document.getElementById('input-gender').value;
-        const country = document.getElementById('input-country').value;
-        const bio = document.getElementById('input-bio').value.trim();
-
-        if(!name) return alert('الرجاء إدخال اسم المستخدم!');
-        if(!gender) return alert('الرجاء تحديد الجنس!');
-
-        if (name === 'علي') {
-            if (passwordInput !== ADMIN_PASSWORD) {
-                alert('كلمة السر الخاصة بالمالك (علي) غير صحيحة!');
-                return;
-            }
-        }
-
-        userProfile.name = name;
-        userProfile.age = age;
-        userProfile.gender = gender;
-        userProfile.country = country;
-        userProfile.bio = bio || 'لا يوجد وصف شخصي بعد.';
-        
-        if(!userProfile.avatar) {
-            userProfile.avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
-        }
-        
-        // تحديث واجهة الـ Bar والانتقال للغرف
-        document.getElementById('bar-username').innerText = `${name} (${country})`;
-        document.getElementById('bar-avatar').src = userProfile.avatar;
-
-        document.getElementById('screen-welcome').classList.add('hidden');
-        document.getElementById('screen-lobby').classList.remove('hidden');
-    }
-
-    function joinRoom(roomId, roomName) {
-        currentRoomId = r
+async function openProfile(uid){
+ const {data:p,error}=await sb.from('profiles').select('*').eq('id',uid).single();if(error)return toast(error.message,true);selectedProfile=p;
+ $('pAvatar').src=p.avatar_url||'';$('pName').textContent=p.username;$('pDetails').textContent=`${p.country||''} ${p.age?`• ${p.age} سنة`:''} ${p.role!=='user'?'• '+p.role:''}`;$('pBio').textContent=p.bio||'لا يوجد وصف شخصي.';
+ $('dmBtn').classList.toggle('hidden',uid===currentUser.id);$('ownPostArea').classList.toggle('hidden',uid!==currentUser.id);
+ await refreshProfileActions();await loadPosts(uid);show('profileModal')
+}
+async function refreshProfileActions(){
+ const uid=selectedProfile.id;
+ const [{count:likes},{data:liked},{data:friend}]=await Promise.all([
+  sb.from('profile_likes').select('*',{count:'exact',head:true}).eq('profile_id',uid),
+  sb.from('profile_likes').select('id').eq('profile_id',uid).eq('user_id',currentUser.id).maybeSingle(),
+  sb.from('friendships').select('id,status').or(`and(requester_id.eq.${curr
