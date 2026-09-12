@@ -48,11 +48,11 @@
 </div>
 
 <script>
-    // البيانات الخاصة بـ Supabase
-    const SUPABASE_URL = 'ضع_رابط_المشروع_هنا'; // مثل: https://xxxx.supabase.co
+    // البيانات المباشرة لمشروع Supabase
+    const SUPABASE_URL = 'https://wiahoicutalnheblndek.supabase.co';
     const SUPABASE_ANON_KEY = 'Sb_publishable_hhO_cV9Es5-jP09bC51ErA_9dmPIgch';
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUsername = '';
     let currentRoom = 1;
@@ -74,8 +74,8 @@
 
         fetchMessages();
         
-        // استقبال الرسائل الفورية
-        supabase
+        // استقبال الرسائل الفورية مباشرة عند إرسالها
+        supabaseClient
             .channel('public:messages')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                 if (payload.new.room_id === currentRoom) {
@@ -86,7 +86,7 @@
     }
 
     async function fetchMessages() {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('messages')
             .select('*')
             .eq('room_id', currentRoom)
@@ -99,7 +99,9 @@
 
         const chatBox = document.getElementById('chat-box');
         chatBox.innerHTML = '';
-        data.forEach(msg => appendMessage(msg));
+        if (data) {
+            data.forEach(msg => appendMessage(msg));
+        }
     }
 
     function appendMessage(msg) {
@@ -117,7 +119,7 @@
 
         if (!content) return;
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('messages')
             .insert([{ room_id: currentRoom, username: currentUsername, content: content }]);
 
